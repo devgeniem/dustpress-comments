@@ -1,0 +1,37 @@
+var webpack                 = require("webpack");
+var ExtractTextPlugin       = require("extract-text-webpack-plugin");
+
+module.exports = {
+    entry: {
+        dustpress_comments: __dirname + '/assets/dustpress-comments.js'
+    },
+    output: {
+        path: __dirname + '/../dist',
+        filename: 'dustpress-comments.min.js'
+    },
+    module: {
+        loaders: [
+            {
+                test: /\.css$/,
+                loader: ExtractTextPlugin.extract("style", "css")
+            },
+        ]
+    },
+    plugins: [
+        new ExtractTextPlugin("dustpress-comments.min.css", {
+            allChunks: true
+        }),
+        new webpack.optimize.UglifyJsPlugin({
+            mangle: false,
+            compress: {
+                unused: false
+            }
+        })
+    ],
+    externals: {
+        "jquery": "jQuery"
+    },
+    watchOptions: {
+      poll: 100
+    }
+};

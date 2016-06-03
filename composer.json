@@ -1,0 +1,21 @@
+{
+  "name": "devgeniem/dustpress-comments",
+  "type": "wordpress-plugin",
+  "description": "A WordPress plugin which enables commenting for DustPress based themes.",
+  "authors": [
+    {
+        "name": "Ville Siltala",
+        "email": "ville.siltala@geniem.com",
+        "homepage": "http://geniem.com/",
+        "role": "Developer"
+    }
+  ],
+  "require": {
+    "composer/installers": "^1.0"
+  },
+  "keywords": [
+    "wordpress", "comments", "ajax", "dustjs", "dustpress", "theme", "plugin", "javascript"
+  ],
+  "license": "GPL-3.0",
+  "minimum-stability": "dev"
+}
