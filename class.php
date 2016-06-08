@@ -21,7 +21,7 @@ class Comments extends \DustPress\Helper {
     private $load_comments;
     private $pagination;
     private $paginate;
-    private $rows;
+    private $items;
     private $per_page;
     private $page_label;
     private $page;
@@ -265,7 +265,7 @@ class Comments extends \DustPress\Helper {
 
             $this->comments = get_comments( $this->comments_args );
 
-            $this->rows = $this->count_top_level_comments( $this->comments_args['post_id'] );
+            $this->items = $this->count_top_level_comments( $this->comments_args['post_id'] );
 
             $this->after_comments = $this->pagination();
 
@@ -287,7 +287,7 @@ class Comments extends \DustPress\Helper {
         $params->page_label = $this->page_label;
         $params->page       = $this->page;
         $params->per_page   = $this->per_page;
-        $params->rows       = $this->rows;
+        $params->items       = $this->items;
         $params->hash       = $this->section_id;
 
         $this->pagination = new \DustPress\Pagination();
