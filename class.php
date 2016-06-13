@@ -168,8 +168,7 @@ class Comments extends \DustPress\Helper {
         // Set the partial name and possibly override it with a filter
         $partial                = apply_filters( 'dustpress/comments/partial', 'comments' );
 
-        // Add data into debugger
-        dustpress()->set_debugger_data( 'Comments', $c_data );
+        $c_data                 = apply_filters( 'dustpress/comments/data', $c_data );
 
         // Render output
         return dustpress()->render( [
