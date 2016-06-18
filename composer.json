@@ -17,5 +17,10 @@
     "wordpress", "comments", "ajax", "dustjs", "dustpress", "theme", "plugin", "javascript"
   ],
   "license": "GPL-3.0",
-  "minimum-stability": "dev"
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=5.4",
+    "devgeniem/dustpress": ">=0.4.0",
+    "composer/installers": "v1.0.12"
+  }
 }

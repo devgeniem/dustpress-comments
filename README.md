@@ -8,8 +8,8 @@ Use Comments Helper with your desired parameters and DustPress will provide an A
 
 ## Included base templates
 
-- _**comments.dust** (the comment list, the form)_
-- _**comment.dust** (a single comment)_
+- _**comments.dust** (comment list, pagination, form)_
+- _**comment.dust** (single comment)_
 
 ## Extended functionality
 

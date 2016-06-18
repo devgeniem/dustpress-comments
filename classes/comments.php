@@ -38,24 +38,34 @@ class Comments extends \DustPress\Helper {
     private $comments;
     private $form;
     private $output;
+    private $version;
+
+    /**
+     * The constructor.
+     *
+     * @param string $version The current plugin version.
+     */
+    public function __construct( $version ) {
+        $this->version = $version;
+    }
 
     /**
      * Fired by DustPress core before the helper is rendered.
      */
     public function prerun() {
         $js_args = [
-            'comments_per_page' => get_option('comments_per_page'),
+            'comments_per_page' => get_option( 'comments_per_page' ),
             'post_id'           => $post_id     ? $post_id      : $post->ID,
             'form_id'           => $form_id     ? $form_id      : 'commentform',
             'status_id'         => $status_id   ? $status_id    : 'comments__status',
-            'reply_label'       => $reply_label ? $reply_label  : __( 'Reply to comment', 'DustPress-Comments')
+            'reply_label'       => $reply_label ? $reply_label  : __( 'Reply to comment', 'dustpress-comments' ),
         ];
 
-        // styles
-        wp_enqueue_style( 'dustpress-comments-styles', plugin_dir_url( __FILE__ ) . '/dist/dustpress-comments.min.css', false, 1, all );
+        // Styles
+        wp_enqueue_style( 'dustpress-comments-styles', plugin_dir_url( __FILE__ ) . '../dist/dustpress-comments.min.css', false, $this->version, all );
 
-        // js
-        wp_register_script( 'dustpress-comments', plugin_dir_url( __FILE__ ) . '/dist/dustpress-comments.min.js', array('jquery'), null, true);
+        // JS
+        wp_register_script( 'dustpress-comments', plugin_dir_url( __FILE__ ) . '../dist/dustpress-comments.min.js', [ 'jquery' ], $this->version, true );
         wp_localize_script( 'dustpress-comments', 'comments', $js_args );
         wp_enqueue_script( 'dustpress-comments' );
     }
@@ -68,7 +78,7 @@ class Comments extends \DustPress\Helper {
     public function output() {
         global $post;
 
-        $c_data                 = new \stdClass();
+        $rendering_data         = (object) [];
         $params                 = $this->params;
         $this->section_title    = $params->section_title;
         $this->section_id       = $params->section_id ? $params->section_id : 'comments__section';
@@ -81,7 +91,7 @@ class Comments extends \DustPress\Helper {
 
         // Store params
         $this->uniqid                   = uniqid();
-        $session_data                   = (object)[];
+        $session_data                   = (object) [];
         $session_data->section_title    = $this->section_title;
         $session_data->comment_class    = $this->comment_class;
         $session_data->form_args        = $this->form_args;
@@ -158,23 +168,23 @@ class Comments extends \DustPress\Helper {
         }
 
         // Map data
-        $c_data->title          = apply_filters( 'dustpress/comments/section_title', $this->section_title );
-        $c_data->form_id        = apply_filters( 'dustpress/comments/form_id', $this->form_id );
-        $c_data->message        = apply_filters( 'dustpress/comments/message', $params->message );
-        $c_data->form           = apply_filters( 'dustpress/comments/form', $this->form );
-        $c_data->comments       = apply_filters( 'dustpress/comments/comments', $this->comments );
-        $c_data->after_comments = apply_filters( 'dustpress/comments/after_comments', $this->after_comments );
+        $rendering_data->title          = apply_filters( 'dustpress/comments/section_title', $this->section_title );
+        $rendering_data->form_id        = apply_filters( 'dustpress/comments/form_id', $this->form_id );
+        $rendering_data->message        = apply_filters( 'dustpress/comments/message', $params->message );
+        $rendering_data->form           = apply_filters( 'dustpress/comments/form', $this->form );
+        $rendering_data->comments       = apply_filters( 'dustpress/comments/comments', $this->comments );
+        $rendering_data->after_comments = apply_filters( 'dustpress/comments/after_comments', $this->after_comments );
 
         // Set the partial name and possibly override it with a filter
         $partial                = apply_filters( 'dustpress/comments/partial', 'comments' );
 
         // Add data into debugger
-        dustpress()->set_debugger_data( 'Comments', $c_data );
+        dustpress()->set_debugger_data( 'Comments', $rendering_data );
 
         // Render output
         return dustpress()->render( [
             "partial"   => $partial,
-            "data"      => $c_data,
+            "data"      => $rendering_data,
             "type"      => "html",
             "echo"      => false
         ]);
@@ -185,19 +195,19 @@ class Comments extends \DustPress\Helper {
      * @param  integer $comment_id Id of the new comment.
      * @return json
      */
-    public function handle_ajax( $comment_id ) {
+    public function comment_posted( $comment_id ) {
 
         if ( ! defined('DUSTPRESS_AJAX') ) {
             define("DUSTPRESS_AJAX", true);
         }
 
         $comment        = get_comment( $comment_id );
-        $comment_data   = wp_unslash( $_POST );
 
         // Get params from session
-        $uniqid         = $comment_data['dustpress_comments'];
+        $uniqid         = filter_input( INPUT_POST, 'dustpress_comments', FILTER_SANITIZE_STRING );
+        error_log('id: '.$uniqid);
         $this->params   = $_SESSION[ $uniqid ];
-
+        error_log(json_encode($this->params));
         if ( $comment->comment_approved ) {
             $this->params->message = [ 'success' => __( 'Comment sent.', 'dusptress-comments' ) ];
         } else {
@@ -211,7 +221,11 @@ class Comments extends \DustPress\Helper {
             'html'      => $output,
         ];
 
-        die( json_encode( $return ) );
+        wp_send_json( $return );
+    }
+
+    public function paginate( $page = 1, $offset = 0 ) {
+
     }
 
     /**

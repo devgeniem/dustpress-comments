@@ -129,11 +129,13 @@ window.DustPressComments = ( function( window, document, $ ){
             type: 'POST',
             data: formData,
             success: function (data) {
-                var result = JSON.parse(data);
-                if ( result.success ) {
-                    app.handleSuccess(result);
+                if ( 'object' !== typeof data ) {
+                    data = JSON.parse(data);
+                }
+                if ( data.success ) {
+                    app.handleSuccess(data);
                 } else {
-                    app.handleError(result);
+                    app.handleError(data);
                 }
             },
             cache: false,
@@ -200,9 +202,8 @@ window.DustPressComments = ( function( window, document, $ ){
         }
     }
 
-    app.stop = function(e) {
-        e.stopPropagation();
-        e.preventDefault();
+    app.stop = function(event) {
+        event.preventDefault ? event.preventDefault() : ( event.returnValue = false );
     };
 
     $(document).ready( app.init );

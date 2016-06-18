@@ -6,7 +6,7 @@ module.exports = {
         dustpress_comments: __dirname + '/assets/dustpress-comments.js'
     },
     output: {
-        path: __dirname + '/../dist',
+        path: __dirname + '/dist',
         filename: 'dustpress-comments.min.js'
     },
     module: {
@@ -20,18 +20,9 @@ module.exports = {
     plugins: [
         new ExtractTextPlugin("dustpress-comments.min.css", {
             allChunks: true
-        }),
-        new webpack.optimize.UglifyJsPlugin({
-            mangle: false,
-            compress: {
-                unused: false
-            }
         })
     ],
     externals: {
         "jquery": "jQuery"
-    },
-    watchOptions: {
-      poll: 100
     }
 };
