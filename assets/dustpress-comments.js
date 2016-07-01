@@ -2,60 +2,46 @@ require( __dirname + '/dustpress-comments.css' );
 
 window.DustPressComments = ( function( window, document, $ ){
 
-    var app = {};
-
-    // array for event listeners
-    app.listeners = [];
-
-    app.cache = function() {
-        app.postId          = comments.post_id;
-        app.formId          = '#' + comments.form_id;
-        app.statusId        = '#' + comments.status_id
-        app.replyLabel      = comments.reply_label;
-
-        app.$section        = $('#comments__section');
-        app.$formContainer  = app.$section.find(app.formId + '__container');
-        app.$commentForm    = app.$section.find(app.formId);
-        app.$replyLinks     = app.$section.find('a.comment-reply-link');
-        app.$statusDiv      = app.$commentForm.find(app.statusId);
-        app.$identifier     = app.$commentForm.find('#dustpress_comments_identifier');
-
-        // init message boxes
-        app.cacheMessageBoxes();
+    var app = {
+        listeners: []
     };
 
-    app.cacheMessageBoxes = function(id, container) {
-        if (id) {
-            app.$successBox     = container.find('#comments__success_' + id);
-            app.$errorBox       = container.find('#comments__error_' + id);
-            app.$warningBox     = container.find('#comments__warning_' + id);
-        }
-        else {
-            app.$successBox     = app.$formContainer.find('#comments__success');
-            app.$errorBox       = app.$formContainer.find('#comments__error');
-            app.$warningBox     = app.$formContainer.find('#comments__warning');
-        }
-    }
+    app.cache = function() {
+
+        // Get all comment sections
+        app.sections = $(".dustpress-comments");
+
+        // Cache all elements
+        app.sections.each(function(index, elem) {
+            elem.$commentForm    = elem.find('form');
+            elem.$formContainer  = elem.$commentForm.parent();
+            // Init message boxes
+            elem.$successBox     = elem.$formContainer.find('.comments__success');
+            elem.$errorBox       = elem.$formContainer.find('.comments__error');
+            elem.$warningBox     = elem.$formContainer.find('.comments__warning');
+            // Init reply links
+            elem.$replyLinks = elem.find('.comment-reply-link');
+            $.each( elem.$replyLinks, app.removeWPReplyLink );
+        });
+
+        app.replyLabel      = comments.reply_label;
+    };
 
     app.init = function(){
         app.cache();
-
-        $.each( app.$replyLinks, app.removeReplyLink );
-
         app.listen();
         app.displayMessages();
-        app.addIdentifier();
     };
 
     app.addListener = function(fn) {
         app.listeners.push(fn);
-    }
+    };
 
     app.fireListeners = function() {
         $.each(app.listeners, function(i, fn) {
             fn.call();
         });
-    }
+    };
 
     // event listeners
     app.listen = function() {
@@ -116,32 +102,37 @@ window.DustPressComments = ( function( window, document, $ ){
         app.$formContainer.show();
     };
 
-    app.removeReplyLink = function(idx, link) {
+    app.removeWPReplyLink = function(idx, link) {
         link.setAttribute('onclick', null);
     };
 
     app.submit = function() {
+        var formData;
 
-        var formData = new FormData(this);
+        if ( FormData ) {
+            formData = new FormData(this);
 
-        $.ajax({
-            url: app.$commentForm.attr('action'),
-            type: 'POST',
-            data: formData,
-            success: function (data) {
-                if ( 'object' !== typeof data ) {
-                    data = JSON.parse(data);
-                }
-                if ( data.success ) {
-                    app.handleSuccess(data);
-                } else {
-                    app.handleError(data);
-                }
-            },
-            cache: false,
-            contentType: false,
-            processData: false
-        });
+            $.ajax({
+                url: app.$commentForm.attr('action'),
+                type: 'POST',
+                data: formData,
+                success: function (data) {
+                    if ( 'object' !== typeof data ) {
+                        data = JSON.parse(data);
+                    }
+                    if ( data.success ) {
+                        app.handleSuccess(data);
+                    } else {
+                        app.handleError(data);
+                    }
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+        } else {
+
+        }
 
         return false;
     }
@@ -189,10 +180,6 @@ window.DustPressComments = ( function( window, document, $ ){
             app.$errorBox.html('Error');
             app.$errorBox.show();
         }
-    };
-
-    app.addIdentifier = function() {
-        $('<input type="hidden" name="dustpress_comments_ajax" value="1" />').insertAfter(app.$identifier);
     };
 
     app.clearReplyForm = function() {
