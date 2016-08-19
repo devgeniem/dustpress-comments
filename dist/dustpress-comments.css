@@ -1,9 +1,9 @@
 
-#comments__section form {
+.dustpress-comments form {
     position: relative;
 }
 
-.comments_loader {
+.dustpres-comments__loader {
     display: none;
     position: absolute;
     top: 0; right: 0;
@@ -11,7 +11,7 @@
     background: rgba(255,255,255,0.8);
 }
 
-.comments_loader span {
+.dustpres-comments__loader span {
     position: absolute;
     text-align: center;
     width: 100%;
@@ -31,10 +31,10 @@
     opacity: 1;
 }
 
-#comments__status .alert-box {
+.dustpress-comments__status .alert-box {
     display: none;
 }
 
-.comments__form_container .alert-box a.close {
+.dustpress-comments__form_container .alert-box a.close {
     text-decoration: none;
 }

@@ -1,7 +1,7 @@
-<section class="dustpress-comments comments" id="comments__section">
+<section class="dustpress-comments comments">
 	{?comments}
-	<div id="comments__list_container">
-		<div class="comments__list">
+	<div class="dustpress-comments__list_container">
+		<div class="dustpress-comments__list">
 			{#comments}
 				{>"comment"/}
 			{/comments}
@@ -11,21 +11,21 @@
 	{/comments}
 
 	{?form}
-		<div class="comments__form_container" id="{form_id}__container">
-			<div id="comments__status">
-				<div data-alert class="alert-box comments__success success radius{?message.success} display{/message.success}">
+		<div class="dustpress-comments__form_container">
+			<div class="dustpress-comments__status">
+				<div data-alert class="alert-box dustpress-comments__success radius{?message.success} display{/message.success}">
 					{?message.success}
 						{message.success}
 					{/message.success}
 					<a href="#" class="close">&times;</a>
 				</div>
-			<div data-alert class="alert-box comments__success alert radius{?message.error} display{/message.error}">
+			<div data-alert class="alert-box dustpress-comments__alert radius{?message.error} display{/message.error}">
 					{?message.error}
 						{message.error}
 					{/message.error}
 					<a href="#" class="close">&times;</a>
 				</div>
-				<div data-alert class="alert-box comments__success warning radius{?message.warning} display{/message.warning}">
+				<div data-alert class="alert-box dustpress-comments__warning radius{?message.warning} display{/message.warning}">
 					{?message.warning}
 						{message.warning}
 					{/message.warning}

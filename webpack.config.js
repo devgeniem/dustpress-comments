@@ -7,7 +7,7 @@ module.exports = {
     },
     output: {
         path: __dirname + '/dist',
-        filename: 'dustpress-comments.min.js'
+        filename: 'dustpress-comments.js'
     },
     module: {
         loaders: [
@@ -18,7 +18,7 @@ module.exports = {
         ]
     },
     plugins: [
-        new ExtractTextPlugin("dustpress-comments.min.css", {
+        new ExtractTextPlugin("dustpress-comments.css", {
             allChunks: true
         })
     ],

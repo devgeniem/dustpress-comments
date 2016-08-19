@@ -3,117 +3,150 @@ require( __dirname + '/dustpress-comments.css' );
 window.DustPressComments = ( function( window, document, $ ){
 
     var app = {
+        replyLabel: comments.reply_label,
+        containers: {},
         listeners: []
     };
 
     app.cache = function() {
-
         // Get all comment sections
-        app.sections = $(".dustpress-comments");
+        app.$sections = $('.dustpress-comments');
 
         // Cache all elements
-        app.sections.each(function(index, elem) {
-            elem.$commentForm    = elem.find('form');
-            elem.$formContainer  = elem.$commentForm.parent();
-            // Init message boxes
-            elem.$successBox     = elem.$formContainer.find('.comments__success');
-            elem.$errorBox       = elem.$formContainer.find('.comments__error');
-            elem.$warningBox     = elem.$formContainer.find('.comments__warning');
-            // Init reply links
-            elem.$replyLinks = elem.find('.comment-reply-link');
-            $.each( elem.$replyLinks, app.removeWPReplyLink );
+        app.$sections.each(function(index, elem) {
+            app.initContainer(elem);
         });
-
-        app.replyLabel      = comments.reply_label;
     };
 
     app.init = function(){
+        // Cache all comment sections from DOM
         app.cache();
-        app.listen();
-        app.displayMessages();
+        // Init listeners
+        $.each(app.containers, app.listen);
+        // Display visible messages
+        $.each(app.containers, app.displayMessages);
+    };
+
+    app.initContainer = function(container) {
+        // Wrap the element into a jQuery object and generate an unique id
+        var jObj  = $(container),
+            uid  = app.uniqid();
+
+        // Get the form element
+        jObj.$commentForm       = jObj.find('form');
+        jObj.$formContainer     = jObj.find('.dustpress-comments__form_container');
+
+        // Identify the container and the form just because WordPress is lazy.
+        app.containers[uid] = jObj;
+        jObj.attr( 'id', uid );
+        jObj.$formContainer.attr( 'data-container', uid );
+        jObj.$commentForm.attr( 'data-container', uid );
+
+        // Init message boxes
+        jObj.$successBox        = jObj.$formContainer.find('.dustpress-comments__success');
+        jObj.$errorBox          = jObj.$formContainer.find('.dustpress-comments__error');
+        jObj.$warningBox        = jObj.$formContainer.find('.dustpress-comments__warning');
+
+        // Init reply links
+        jObj.$replyLinks = jObj.find('.comment-reply-link');
+        $.each( jObj.$replyLinks, app.removeWPReplyLink );
     };
 
     app.addListener = function(fn) {
-        app.listeners.push(fn);
+        if ( typeof f === 'function' ) {
+            app.listeners.push(fn);
+        } else {
+            console.log('DustPress Comments: This listener is not a function.', fn);
+        }
     };
 
-    app.fireListeners = function() {
+    app.fireListeners = function(modified) {
         $.each(app.listeners, function(i, fn) {
-            fn.call();
+            fn.call(modified);
         });
     };
 
-    // event listeners
-    app.listen = function() {
-        // replying
-        app.$replyLinks.on('click', function(e) {
-            app.stop(e);
-            app.hideMessages();
-            app.addReplyForm( e.target );
+    // Event listeners
+    app.listen = function(containerID, container) {
+        // Replying
+        container.on('click', '.comment-reply-link', app.addReplyForm);
+        // Form submission
+        container.$commentForm.submit(app.submit);
+        // Enable message hiding
+        container.on('click', '.close', function(e) {
+            container.stop(e);
+            app.hideMessages(container);
         });
-        // form submission
-        app.$commentForm.submit(app.submit);
-        // message boxes hiding
-        app.$section.find('.close').on('click', function(e) {
-            app.stop(e);
-            app.hideMessages();
-        })
     };
 
-    app.addReplyForm = function( target ) {
-        app.$closest    = $( target ).closest('.comment');
-        var commentId   = app.$closest.data('id');
+    app.addReplyForm = function(e) {
 
-        // initialize reply form
-        app.clearReplyForm();
-        app.$replyForm = app.$formContainer.clone(true);
+        // Get the stored object based by id
+        var $container = app.containers[e.delegateTarget.id];
 
-        // hide main form
-        app.$formContainer.hide();
+        app.stop(e);
+        app.hideMessages($container);
 
-        // change form heading
-        var small = app.$replyForm.find('#reply-title small');
-        app.$replyForm.find('#reply-title').html(app.replyLabel).append(small);
+        var $closest  = $( e.target ).closest('.comment');
+        var commentId = $closest.data('id');
 
-        // set parent id
-        app.$replyForm.find('#comment_parent').val(commentId);
+        // Initialize reply form
+        app.clearReplyForm($container);
+        $container.$replyForm = $container.$formContainer.clone(true);
 
-        // init message fields
-        app.$replyForm.find('#comments__success').attr('id', 'comments__success_' + commentId);
-        app.$replyForm.find('#comments__error').attr('id', 'comments__error_' + commentId);
-        app.$replyForm.find('#comments__warning').attr('id', 'comments__warning_' + commentId);
+        // Hide main form
+        $container.$formContainer.hide();
 
-        // append to DOM
-        app.$closest.append( app.$replyForm ); // with data and events
-        app.$replyForm.show();
+        // Change form heading
+        var small = $container.$replyForm.find('#reply-title small');
+        $container.$replyForm.find('#reply-title').html(app.replyLabel).append(small);
 
-        app.cacheMessageBoxes(commentId, app.$replyForm);
+        // Set parent id
+        $container.$replyForm.find('#comment_parent').val(commentId);
 
-        // cancel link
-        app.$cancelReplyLink = app.$replyForm.find('#cancel-comment-reply-link');
-        app.$cancelReplyLink.on('click', app.cancelReply);
-        app.$cancelReplyLink.show();
+        // Init message fields
+        $container.$replyForm.find('.comments__success').attr('id', 'comments__success_' + commentId);
+        $container.$replyForm.find('.comments__error').attr('id', 'comments__error_' + commentId);
+        $container.$replyForm.find('.comments__warning').attr('id', 'comments__warning_' + commentId);
+
+        // Append to DOM
+        $closest.append( $container.$replyForm ); // With data and events
+        $container.$replyForm.show();
+
+        // Cancel link
+        $container.$cancelReplyLink = $container.$replyForm.find('#cancel-comment-reply-link');
+        $container.$replyForm.on('click', '#cancel-comment-reply-link', app.cancelReply);
+        $container.$cancelReplyLink.show();
     };
 
     app.cancelReply = function(e) {
         app.stop(e);
-        app.clearReplyForm();
-        app.cacheMessageBoxes();
-        app.$formContainer.show();
+
+        // Get the container
+        var containerID = e.delegateTarget.dataset.container,
+            container   = app.containers[containerID];
+
+        app.clearReplyForm(container);
+        container.$formContainer.show();
     };
 
     app.removeWPReplyLink = function(idx, link) {
-        link.setAttribute('onclick', null);
+        link.removeAttribute('onclick');
     };
 
-    app.submit = function() {
+    app.submit = function(e) {
+        app.stop(e);
+
         var formData;
 
+        // Store the container for listener reloading after DOM modifications
+        app.$modified = app.containers[e.target.dataset.container];
+console.log(app.$modified);
         if ( FormData ) {
             formData = new FormData(this);
 
             $.ajax({
-                url: app.$commentForm.attr('action'),
+                url: e.target.action,
                 type: 'POST',
                 data: formData,
                 success: function (data) {
@@ -131,66 +164,92 @@ window.DustPressComments = ( function( window, document, $ ){
                 processData: false
             });
         } else {
-
+            console.log(comments.form_data_e);
         }
 
         return false;
-    }
+    };
 
-    app.displayMessages = function() {
-        if ( app.$successBox.hasClass('display') ) {
-            app.$successBox.show();
+    app.displayMessages = function(containerID, container) {
+        if ( container.$successBox.hasClass('display') ) {
+            container.$successBox.show();
         }
-        if ( app.$errorBox.hasClass('display') ) {
-            app.$errorBox.show();
+        if ( container.$errorBox.hasClass('display') ) {
+            container.$errorBox.show();
         }
-        if ( app.$warningBox.hasClass('display') ) {
-            app.$warningBox.show();
+        if ( container.$warningBox.hasClass('display') ) {
+            container.$warningBox.show();
         }
     };
 
-    app.hideMessages = function() {
-        app.$successBox.removeClass('display');
-        app.$successBox.hide();
-        app.$errorBox.removeClass('display');
-        app.$errorBox.hide();
-        app.$warningBox.removeClass('display');
-        app.$warningBox.hide();
+    app.hideMessages = function(container) {
+        container.$successBox.removeClass('display');
+        container.$successBox.hide();
+        container.$errorBox.removeClass('display');
+        container.$errorBox.hide();
+        container.$warningBox.removeClass('display');
+        container.$warningBox.hide();
     };
 
     app.handleSuccess = function(data) {
-        // remove reply form
-        if (app.$replyForm) {
-            app.clearReplyForm();
+        // Remove reply form
+        if (app.$modified.$replyForm) {
+            app.clearReplyForm(app.$modified);
         }
-        // replace comments section with rendered html
-        app.$section.replaceWith(data.html);
-        // reload comments app
-        app.init();
-        app.fireListeners();
+        // Replace comments section with rendered html
+        app.$modified.replaceWith(data.html);
+        // Reload listeners
+        app.init(app.$modified.attr('id'), app.$modified);
+        // Fire external lister functions
+        app.fireListeners(app.$modified);
+
+        delete app.$modified;
     };
 
     app.handleError = function(data) {
         if ( data.error ) {
-            console.log(app.$errorBox);
-            app.$errorBox.html(data.message);
-            app.$errorBox.show();
+            console.log(app.$modified.$errorBox);
+            app.$modified.$errorBox.html(data.message);
+            app.$modified.$errorBox.show();
         }
         else {
-            app.$errorBox.html('Error');
-            app.$errorBox.show();
+            app.$modified.$errorBox.html('Error');
+            app.$modified.$errorBox.show();
+        }
+
+        delete app.$modified;
+    };
+
+    app.clearReplyForm = function(container) {
+        if ( container.$replyForm ) {
+            container.$replyForm.remove();
+            delete container.$replyForm;
         }
     };
 
-    app.clearReplyForm = function() {
-        if ( app.$replyForm ) {
-            app.$replyForm.remove();
-            app.$replyForm = undefined;
-        }
-    }
+    app.getParent = function(parentId) {
+
+    };
 
     app.stop = function(event) {
         event.preventDefault ? event.preventDefault() : ( event.returnValue = false );
+    };
+
+    app.uniqid = function (pr, en) {
+        pr = pr || '';
+        en = en || false;
+        var result;
+
+        this.seed = function (s, w) {
+            s = parseInt(s, 10).toString(16);
+            return w < s.length ? s.slice(s.length - w) : (w > s.length) ? new Array(1 + (w - s.length)).join('0') + s : s;
+        };
+
+        result = pr + this.seed(parseInt(new Date().getTime() / 1000, 10), 8) + this.seed(Math.floor(Math.random() * 0x75bcd15) + 1, 5);
+
+        if (en) result += (Math.random() * 10).toFixed(8).toString();
+
+        return result;
     };
 
     $(document).ready( app.init );

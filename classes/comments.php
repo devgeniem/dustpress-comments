@@ -34,7 +34,6 @@ class Comments extends \DustPress\Helper {
     private $avatar_args;
     private $section_title;
     private $section_id;
-    private $form_id;
     private $threaded;
     private $comments;
     private $form;
@@ -60,10 +59,10 @@ class Comments extends \DustPress\Helper {
         ];
 
         // Styles
-        wp_enqueue_style( 'dustpress-comments-styles', plugin_dir_url( __FILE__ ) . '../dist/dustpress-comments.min.css', false, $this->version, all );
+        wp_enqueue_style( 'dustpress-comments-styles', plugins_url( 'dist/dustpress-comments.css', dirname( __FILE__ ) ), false, $this->version, all );
 
         // JS
-        wp_register_script( 'dustpress-comments', plugin_dir_url( __FILE__ ) . '../dist/dustpress-comments.min.js', [ 'jquery' ], $this->version, true );
+        wp_register_script( 'dustpress-comments', plugins_url( 'dist/dustpress-comments.js', dirname( __FILE__ ) ), [ 'jquery' ], $this->version, true );
         wp_localize_script( 'dustpress-comments', 'comments', $js_args );
         wp_enqueue_script( 'dustpress-comments' );
     }
@@ -97,13 +96,12 @@ class Comments extends \DustPress\Helper {
 
         // Form loading and modification arguments
         if ( $this->echo_form ) {
-            $this->replacements     = $this->form_args['replace_input'];
-            $this->remove           = $this->form_args['remove_input'];
-            $this->status_div       = $this->form_args['status_div'];
-            $this->status_id        = $this->form_args['status_id'];
-            $this->input_class      = $this->form_args['input_class'];
-            $this->input_attrs      = $this->form_args['input_attrs'];
-            $this->form_id          = $this->form_args['form_id'] ? $form_args['form_id'] : 'commentform';
+            $this->replacements         = $this->form_args['replace_input'];
+            $this->remove               = $this->form_args['remove_input'];
+            $this->status_div           = $this->form_args['status_div'];
+            $this->status_id            = $this->form_args['status_id'];
+            $this->input_class          = $this->form_args['input_class'];
+            $this->input_attrs          = $this->form_args['input_attrs'];
         }
 
         // Default args
@@ -134,7 +132,6 @@ class Comments extends \DustPress\Helper {
         // Map data
         $rendering_data                 = (object) [];
         $rendering_data->title          = apply_filters( 'dustpress/comments/section_title', $this->section_title );
-        $rendering_data->form_id        = apply_filters( 'dustpress/comments/form_id', $this->form_id );
         $rendering_data->message        = apply_filters( 'dustpress/comments/message', $this->params->message );
         $rendering_data->form           = apply_filters( 'dustpress/comments/form', $this->form );
         $rendering_data->comments       = apply_filters( 'dustpress/comments/comments', $this->comments );
@@ -227,7 +224,7 @@ class Comments extends \DustPress\Helper {
             $this->comments_args    = apply_filters( 'dustpress/comments/get_comments_args', $this->comments_args, $this->comment_post_id );
             $this->comments_args    = apply_filters( 'dustpress/comments/' . $this->params->filter_slug . '/get_comments_args', $this->comments_args, $this->comment_post_id );
             $this->form_args        = apply_filters( 'dustpress/comments/get_form_args', $this->form_args, $this->comment_post_id );
-            $this->form_args        = apply_filters( 'dustpress/comments/' . $this->params->filter_slug . '/get_form_args' );
+            $this->form_args        = apply_filters( 'dustpress/comments/' . $this->params->filter_slug . '/get_form_args', $this->form_args, $this->comment_post_id  );
 
             if ( ! is_array( $this->comments_args ) ) {
                 die( __( 'DustPress-Comments: The \'get_comments_args\' filter return value is not an array.', 'dustpress-comments' ) );
@@ -340,16 +337,17 @@ class Comments extends \DustPress\Helper {
             // This is a nice undocumented feature of WP
             $this->comments_args['hierarchical'] = true;
 
-            $this->comments = get_comments( $this->comments_args );
-
-            $this->items = $this->count_top_level_comments( $this->comments_args['comment_post_id'] );
-
-            $this->after_comments = $this->pagination();
+            // Get the comments
+            $this->comments         = get_comments( $this->comments_args );
+            // Count top level comments for pagination
+            $this->items            = $this->count_top_level_comments( $this->comments_args['comment_post_id'] );
+            // Add the pagination HTML after comments
+            $this->after_comments   = $this->pagination();
 
             // No need to proceed
             return;
         }
-
+        // Load all comments
         $this->comments = get_comments( $this->comments_args );
     }
 
@@ -484,9 +482,8 @@ class Comments extends \DustPress\Helper {
                 echo $this->loader;
             }
             else {
-                echo '<div class="comments_loader"><span>' . __( 'Processing comments...', 'dusptress-comments' ) . '<span></div>';
+                echo '<div class="dustpres-comments__loader"><span>' . __( 'Processing comments...', 'dusptress-comments' ) . '<span></div>';
             }
-            echo '<div id="comment-status"></div>';
         }
     }
 
@@ -496,12 +493,14 @@ class Comments extends \DustPress\Helper {
 
         // A model is set
         if ( isset( $this->params->model ) ) {
-            $id_elements .= "<input type=\"hidden\" name=\"dustpress_comments_model\" id=\"dustpress_comments_model\" value=\"$this->params->model\" />\n";
+            $model = $this->params->model;
+            $id_elements .= "<input type=\"hidden\" name=\"dustpress_comments_model\" id=\"dustpress_comments_model\" value=\"$model\" />\n";
         }
 
         // A filter slug is set
         if ( isset( $this->params->filter_slug ) ) {
-            $id_elements .= "<input type=\"hidden\" name=\"dustpress_comments_filter_slug\" id=\"dustpress_comments_filter_slug\" value=\"$this->params->filter_slug\" />\n";
+            $slug = $this->params->filter_slug;
+            $id_elements .= "<input type=\"hidden\" name=\"dustpress_comments_filter_slug\" id=\"dustpress_comments_filter_slug\" value=\"$slug\" />\n";
         }
 
         return $id_elements;
