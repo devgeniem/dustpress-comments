@@ -1,4 +1,4 @@
-<section class="dustpress-comments comments">
+<section class="dustpress-comments comments" data-objectid={ID}{?model} data-model={model}{/model}{?filter_slug} data-filterslug={filter_slug}{/filter_slug}>
 	{?comments}
 	<div class="dustpress-comments__list_container">
 		<div class="dustpress-comments__list">
@@ -19,7 +19,7 @@
 					{/message.success}
 					<a href="#" class="close">&times;</a>
 				</div>
-			<div data-alert class="alert-box dustpress-comments__alert radius{?message.error} display{/message.error}">
+				<div data-alert class="alert-box dustpress-comments__error radius{?message.error} display{/message.error}">
 					{?message.error}
 						{message.error}
 					{/message.error}

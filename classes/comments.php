@@ -54,8 +54,9 @@ class Comments extends \DustPress\Helper {
      */
     public function prerun() {
         $js_args = [
-            'reply_label'       => apply_filters( 'dustpress/comments/reply_label', __( 'Reply to comment', 'dustpress-comments' ) ),
-            'form_data_e'       => apply_filters( 'dustpress/comments/form_data_e', __( 'Your browser does not support this type of form handling.', 'dustpress-comments' ) ),
+            'paginationUrl' => apply_filters( 'dustpress/comments/paginationUrl', home_url() ),
+            'replyLabel'    => apply_filters( 'dustpress/comments/reply_label', __( 'Reply to comment', 'dustpress-comments' ) ),
+            'formDataError' => apply_filters( 'dustpress/comments/formDataError', __( 'Your browser does not support this type of form handling.', 'dustpress-comments' ) ),
         ];
 
         // Styles
@@ -63,7 +64,7 @@ class Comments extends \DustPress\Helper {
 
         // JS
         wp_register_script( 'dustpress-comments', plugins_url( 'dist/dustpress-comments.js', dirname( __FILE__ ) ), [ 'jquery' ], $this->version, true );
-        wp_localize_script( 'dustpress-comments', 'comments', $js_args );
+        wp_localize_script( 'dustpress-comments', 'CommentsData', $js_args );
         wp_enqueue_script( 'dustpress-comments' );
     }
 
@@ -73,7 +74,10 @@ class Comments extends \DustPress\Helper {
      * @return string
      */
     public function output() {
-        $this->handle_args();
+        // If not ajaxing, get params
+        if ( ! defined( 'DUSTPRESS_AJAX' ) && true !== DUSTPRESS_AJAX ) {
+            $this->handle_params();
+        }
 
         // Trying to paginate the wp way
         if ( $this->wp_pagination() ) {
@@ -131,11 +135,14 @@ class Comments extends \DustPress\Helper {
 
         // Map data
         $rendering_data                 = (object) [];
+        $rendering_data->ID             = apply_filters( 'dustpress/comments/comment_post_id', $this->comment_post_id );
         $rendering_data->title          = apply_filters( 'dustpress/comments/section_title', $this->section_title );
         $rendering_data->message        = apply_filters( 'dustpress/comments/message', $this->params->message );
         $rendering_data->form           = apply_filters( 'dustpress/comments/form', $this->form );
         $rendering_data->comments       = apply_filters( 'dustpress/comments/comments', $this->comments );
         $rendering_data->after_comments = apply_filters( 'dustpress/comments/after_comments', $this->after_comments );
+        $rendering_data->model          = $this->params->model;
+        $rendering_data->filter_slug    = $this->params->filter_slug;
 
         // Set the partial name and possibly override it with a filter
         $partial    = apply_filters( 'dustpress/comments/partial', 'comments' );
@@ -150,14 +157,14 @@ class Comments extends \DustPress\Helper {
         ]);
     }
 
-    private function handle_args() {
+    private function handle_params() {
         global $post;
 
         // Set comment post id
         $this->comment_post_id = isset( $this->params->comment_post_id ) ? $this->params->comment_post_id : $post->ID;
 
         // Load arguments.
-        $this->get_helper_args();
+        $this->get_helper_params();
 
         $this->section_title    = $this->comments_args['section_title'];
         $this->comment_class    = $this->comments_args['comment_class'];
@@ -177,7 +184,29 @@ class Comments extends \DustPress\Helper {
         $this->reply            = null !== $this->comments_args['reply']             ? $this->comments_args['reply']             : true;
     }
 
-    private function get_helper_args() {
+    /**
+     * Filter input values and get helper parameters based on the data.
+     */
+    private function handle_ajax_params() {
+        // Handle input values
+        $model                  = filter_input( INPUT_POST, 'dustpress_comments_model', FILTER_SANITIZE_STRING );
+        $filter_slug            = filter_input( INPUT_POST, 'dustpress_comments_filter_slug', FILTER_SANITIZE_STRING );
+
+        // A model is defined
+        if ( $model ) {
+            $this->params->model = $model;
+        }
+
+        // A filter slug is defined
+        if ( $filter_slug ) {
+            $this->params->filter_slug = $filter_slug;
+        }
+
+        // Get params
+        $this->handle_params();
+    }
+
+    private function get_helper_params() {
 
         // The helper was defined with arguments.
         if ( isset( $this->params->comments_args ) && isset( $this->params->form_args ) ) {
@@ -237,16 +266,12 @@ class Comments extends \DustPress\Helper {
     }
 
     /**
-     * Fired after comment is succesfully saved in wp-comments-post.php
+     * Fired after a comment is succesfully saved in wp-comments-post.php
      *
      * @param  integer $comment_id Id of the new comment.
      * @return json
      */
     public function comment_posted( $comment_id ) {
-
-        if ( ! defined('DUSTPRESS_AJAX') ) {
-            define("DUSTPRESS_AJAX", true);
-        }
 
         if ( empty( $this->params ) ) {
             $this->params = (object) [];
@@ -257,22 +282,8 @@ class Comments extends \DustPress\Helper {
         // The post we are commenting
         $this->params->comment_post_id = filter_input( INPUT_POST, 'comment_post_ID', FILTER_SANITIZE_NUMBER_INT );
 
-        // Handle ajax params
-        $model                  = filter_input( INPUT_POST, 'dustpress_comments_model', FILTER_SANITIZE_STRING );
-        $filter_slug            = filter_input( INPUT_POST, 'dustpress_comments_filter_slug', FILTER_SANITIZE_STRING );
-
-        // A model is defined
-        if ( $model ) {
-            $this->params->model = $model;
-        }
-
-        // A filter slug is defined
-        if ( $filter_slug ) {
-            $this->params->filter_slug = $filter_slug;
-        }
-
-        // Get params
-        $this->get_helper_args();
+        // On ajax calls get params from a model or a filter function.
+        $this->handle_ajax_params();
 
         if ( $comment->comment_approved ) {
             $this->params->message = [ 'success' => __( 'Comment sent.', 'dusptress-comments' ) ];
@@ -327,8 +338,7 @@ class Comments extends \DustPress\Helper {
         // Maybe paginate
         if ( 1 !== $get_all && $this->paginate ) {
             $args       = array_merge( $this->comments_args, [ 'count' => true ] );
-            $page       = $this->get_int( $this->page_label );
-            $this->page = $page ? $page : 1;
+            $this->page = $this->page ? $this->page : 1;
 
             $this->comments_args['parent'] = 0;
             $this->comments_args['offset'] = $this->page == 1 ? 0 : ( $this->page - 1 ) * $this->per_page;
@@ -369,6 +379,32 @@ class Comments extends \DustPress\Helper {
         $this->pagination->set_params( $params );
 
         return $this->pagination->output();
+    }
+
+    public function paginate() {
+
+        // Init params.
+        if ( empty( $this->params ) ) {
+            $this->params = (object) [];
+        }
+
+        // The requested page.
+        $this->page = filter_input( INPUT_POST, 'dustpress_comments_page', FILTER_SANITIZE_NUMBER_INT );
+
+        // The post to load comments from
+        $this->params->comment_post_id = filter_input( INPUT_POST, 'comment_post_ID', FILTER_SANITIZE_NUMBER_INT );
+
+        // Get params.
+        $this->handle_ajax_params();
+
+        $output = $this->output();
+
+        $return = [
+            'success'   => true,
+            'html'      => $output,
+        ];
+
+        wp_send_json( $return );
     }
 
     private function extend_comments() {
@@ -534,7 +570,7 @@ class Comments extends \DustPress\Helper {
         return [ $this, 'handle_error' ];
     }
 
-    public function handle_error(  $message, $title, $args ) {
+    public function handle_error( $message, $title, $args ) {
         $return = [
             'error'     => true,
             'title'     => $title,

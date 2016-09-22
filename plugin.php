@@ -36,10 +36,17 @@ function init_comments_helper() {
     add_filter( 'dustpress/partials', __NAMESPACE__ . '\add_comments_templates' );
 
     /**
-     * Hooks for comment posting
+     * Hooks for comment posting and paginating
      */
     $ajaxing = filter_input( INPUT_POST, 'dustpress_comments_ajax', FILTER_SANITIZE_NUMBER_INT );
     if ( $ajaxing ) {
+
+        /**
+         * Notify others
+         */
+        if ( ! defined( 'DUSTPRESS_AJAX' ) ) {
+            define( 'DUSTPRESS_AJAX', true );
+        }
 
         /**
          * Add a hook for handling comment posting
@@ -51,6 +58,15 @@ function init_comments_helper() {
          */
         add_filter( 'wp_die_handler', [ $comments, 'get_error_handler' ] );
         add_filter( 'wp_die_ajax_handler', [ $comments, 'get_error_handler' ] );
+
+        /**
+         * Run pagination
+         */
+        $paginate = filter_input( INPUT_POST, 'dustpress_comments_paginate', FILTER_SANITIZE_NUMBER_INT );
+        if ( $paginate ) {
+            add_action( 'wp_ajax_dustpress_comments_paginate', [ $comments, 'paginate' ] );
+            add_action( 'wp_ajax_nopriv_dustpress_comments_paginate', [ $comments, 'paginate' ] );
+        }
     }
 
     /**
