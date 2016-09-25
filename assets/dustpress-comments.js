@@ -342,7 +342,12 @@ window.DustPress.Comments = ( function( window, document, $ ) {
                 processData: false
             });
         } else {
-            console.log(comments.form_data_e);
+            // Display error for missing FormData object.
+            var error = {
+                error:  true,
+                message: CommentsData.formDataError,
+            };
+            app.handleError(error);
         }
 
         return false;
@@ -393,6 +398,8 @@ window.DustPress.Comments = ( function( window, document, $ ) {
         app.$modified.html(data.html);
         // Cache message fields
         app.initMessageFields(app.$modified);
+        // Display messages
+        app.displayMessages(app.$modified.attr('id'), app.$modified);
         // Fire external listener functions
         app.fireListeners('success');
     };
