@@ -23,8 +23,7 @@ function init_comments_helper() {
     require_once( dirname( __FILE__ ) . '/classes/comments.php' );
 
     // Get the current plugin version
-    $plugin_data    = get_file_data( __FILE__, [ 'Version' ], 'plugin' );
-    $plugin_version = $plugin_data['Version'];
+    $plugin_version = get_file_data( __FILE__, [ 'Version' ], 'plugin' );
 
     // Instantiate the class
     $comments = new Comments( $plugin_version );

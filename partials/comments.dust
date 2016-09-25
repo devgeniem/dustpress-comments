@@ -1,38 +1,42 @@
-<section class="dustpress-comments comments" data-objectid={ID}{?model} data-model={model}{/model}{?filter_slug} data-filterslug={filter_slug}{/filter_slug}>
-	{?comments}
-	<div class="dustpress-comments__list_container">
-		<div class="dustpress-comments__list">
-			{#comments}
-				{>"comment"/}
-			{/comments}
-		</div>
-		{after_comments|s}
+{?comments}
+<div class="dustpress-comments__list_container">
+	<div class="dustpress-comments__list">
+		{#comments}
+			{>"comment"/}
+		{/comments}
 	</div>
-	{/comments}
+	{after_comments|s}
+</div>
+{/comments}
 
-	{?form}
-		<div class="dustpress-comments__form_container">
-			<div class="dustpress-comments__status">
-				<div data-alert class="alert-box dustpress-comments__success radius{?message.success} display{/message.success}">
+{?form}
+	<div class="dustpress-comments__form_container">
+		<div class="dustpress-comments__status">
+			<div data-alert class="alert-box dustpress-comments__status dustpress-comments__success radius{?message.success} display{/message.success}">
+				<span class="dustpress-comments__status_message">
 					{?message.success}
 						{message.success}
 					{/message.success}
-					<a href="#" class="close">&times;</a>
-				</div>
-				<div data-alert class="alert-box dustpress-comments__error radius{?message.error} display{/message.error}">
+				</span>
+				<a href="#" class="close">&times;</a>
+			</div>
+			<div data-alert class="alert-box dustpress-comments__status dustpress-comments__error radius{?message.error} display{/message.error}">
+				<span class="dustpress-comments__status_message">
 					{?message.error}
 						{message.error}
 					{/message.error}
-					<a href="#" class="close">&times;</a>
-				</div>
-				<div data-alert class="alert-box dustpress-comments__warning radius{?message.warning} display{/message.warning}">
+				</span>
+				<a href="#" class="close">&times;</a>
+			</div>
+			<div data-alert class="alert-box dustpress-comments__status dustpress-comments__warning radius{?message.warning} display{/message.warning}">
+				<span class="dustpress-comments__status_message">
 					{?message.warning}
 						{message.warning}
 					{/message.warning}
-					<a href="#" class="close">&times;</a>
-				</div>
+				</span>
+				<a href="#" class="close">&times;</a>
 			</div>
-			{form|s}
 		</div>
-	{/form}
-</section>
+		{form|s}
+	</div>
+{/form}

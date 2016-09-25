@@ -20,6 +20,10 @@ module.exports = {
     plugins: [
         new ExtractTextPlugin("dustpress-comments.css", {
             allChunks: true
+        }),
+           new webpack.optimize.UglifyJsPlugin({
+            include: /\.min\.js$/,
+            minimize: true
         })
     ],
     externals: {

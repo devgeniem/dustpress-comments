@@ -97,12 +97,8 @@ window.DustPress.Comments = ( function( window, document, $ ) {
         // Wrap the element into a jQuery object.
         var jObj  = $(container);
 
-        // Get the form element.
-        jObj.$commentForm       = jObj.find('form');
-        jObj.$formContainer     = jObj.find('.dustpress-comments__form_container');
-
         // Init messages.
-        app.initMessageFields(jObj, jObj.$formContainer);
+        app.initMessageFields(jObj);
 
         // Identify the container and the form just because WordPress is lazy.
         app.identify(jObj);
@@ -120,12 +116,14 @@ window.DustPress.Comments = ( function( window, document, $ ) {
      * This function maps the message fields of a form into the container object.
      *
      * @param  object $container    The jQuery object of a comments section.
-     * @param  object $form         The jQuery object of a form container.
      */
-    app.initMessageFields = function($container, $form) {
-        $container.$successBox = $form.find('.dustpress-comments__success');
-        $container.$errorBox   = $form.find('.dustpress-comments__error');
-        $container.$warningBox = $form.find('.dustpress-comments__warning');
+    app.initMessageFields = function($container) {
+        $container.$successBox      = $container.find('.dustpress-comments__success');
+        $container.$successBoxText  = $container.$successBox.find('.dustpress-comments__status_message');
+        $container.$errorBox        = $container.find('.dustpress-comments__error');
+        $container.$errorBoxText    = $container.$errorBox.find('.dustpress-comments__status_message');
+        $container.$warningBox      = $container.find('.dustpress-comments__warning');
+        $container.$warningBoxText  = $container.$warningBox.find('.dustpress-comments__status_message');
     };
 
     /**
@@ -138,10 +136,10 @@ window.DustPress.Comments = ( function( window, document, $ ) {
         // Replying
         $container.on('click', '.comment-reply-link', app.addReplyForm);
         // Form submission
-        $container.$commentForm.submit(app.submit);
+        $container.on('click', 'input[type="submit"]', app.submit);
         // Enable message hiding
         $container.on('click', '.close', function(e) {
-            $container.stop(e);
+            app.stop(e);
             app.hideMessages($container);
         });
         // Enable pagination ajaxing.
@@ -192,9 +190,14 @@ window.DustPress.Comments = ( function( window, document, $ ) {
         // Get the comments model name or the filter slug
         var model   = $container.data('model');
             slug    = $container.data('filterslug'),
-            id      = $container.data('objectid');
+            id      = $container.data('objectid'),
+            page    = $(this).data('page');
+
+        // Fire external listener functions
+        app.fireListeners('paginate');
 
         $.ajax({
+            dataType: 'json',
             url: app.paginationUrl,
             type: 'POST',
             data: {
@@ -203,7 +206,7 @@ window.DustPress.Comments = ( function( window, document, $ ) {
                 'dustpress_comments_ajax': 1,
                 'dustpress_comments_model': model,
                 'dustpress_comments_filter_slug': slug,
-                'dustpress_comments_page': e.target.dataset.page,
+                'dustpress_comments_page': page,
             },
             success: function (data) {
                 if ( 'object' !== typeof data ) {
@@ -239,6 +242,9 @@ window.DustPress.Comments = ( function( window, document, $ ) {
 
         // Initialize reply form
         app.clearReplyForm($container);
+        if ( 'undefined' === typeof $container.$formContainer ) {
+            $container.$formContainer = $container.find('.dustpress-comments__form_container');
+        }
         $container.$replyForm = $container.$formContainer.clone(true);
 
         // Hide the main form
@@ -260,7 +266,7 @@ window.DustPress.Comments = ( function( window, document, $ ) {
 
         // Add listener for the cancel link and display it.
         $container.$cancelReplyLink = $container.$replyForm.find('#cancel-comment-reply-link');
-        $container.$replyForm.on('click', '#cancel-comment-reply-link', app.cancelReply);
+        $container.on('click', '#cancel-comment-reply-link', app.cancelReply);
         $container.$cancelReplyLink.show();
 
         // Fire external listener functions
@@ -276,11 +282,11 @@ window.DustPress.Comments = ( function( window, document, $ ) {
         app.stop(e);
 
         // Get the container
-        var containerID = e.delegateTarget.dataset.container,
-            $container  = app.containers[containerID];
+        var containerID = e.delegateTarget.id,
+            $container = app.$modifie = app.containers[containerID];
 
         // Replace the message fields of the container with the defaults.
-        app.initMessageFields($container, $container.$formContainer);
+        app.initMessageFields($container);
 
         // Clear the reply form and display the default form.
         app.clearReplyForm($container);
@@ -305,14 +311,20 @@ window.DustPress.Comments = ( function( window, document, $ ) {
 
         var formData;
 
-        // Store the container for listener reloading after DOM modifications
-        app.$modified = app.containers[e.target.dataset.container];
+        // Store the container
+        app.$modified = app.containers[e.delegateTarget.id];
+
+        // Fire external listener functions
+        app.fireListeners('submit');
 
         if ( FormData ) {
-            formData = new FormData(this);
+            // Get the form node and pass it to FormData.
+            var $form = $(this).closest('form');
+            formData = new FormData($form.get(0));
 
             $.ajax({
-                url: e.target.action,
+                dataType: 'json',
+                url: $form.attr('action'),
                 type: 'POST',
                 data: formData,
                 success: function (data) {
@@ -374,13 +386,13 @@ window.DustPress.Comments = ( function( window, document, $ ) {
      */
     app.handleSuccess = function(data) {
         // Remove the reply form
+        app.clearReplyForm(app.$modified);
         if (app.$modified.$replyForm) {
-            app.clearReplyForm(app.$modified);
         }
         // Change the state
-        app.$modified.replaceWith(data.html);
-        // Reload listeners
-        app.init(app.$modified.attr('id'), app.$modified);
+        app.$modified.html(data.html);
+        // Cache message fields
+        app.initMessageFields(app.$modified);
         // Fire external listener functions
         app.fireListeners('success');
     };
@@ -393,17 +405,16 @@ window.DustPress.Comments = ( function( window, document, $ ) {
     app.handleError = function(data) {
 
         if ( data.error ) {
-            console.log(app.$modified.$errorBox);
-            app.$modified.$errorBox.html(data.message);
+            app.$modified.$errorBoxText.html(data.message);
             app.$modified.$errorBox.show();
         }
         else {
-            app.$modified.$errorBox.html('Error');
+            app.$modified.$errorBoxText.html('Error');
             app.$modified.$errorBox.show();
         }
 
         // Fire external listener functions
-        app.fireListeners('success');
+        app.fireListeners('error');
     };
 
     /**
@@ -411,7 +422,7 @@ window.DustPress.Comments = ( function( window, document, $ ) {
      *
      * @param  object container The comments section.
      */
-    app.clearReplyForm = function(container) {
+     app.clearReplyForm = function(container) {
         if ( container.$replyForm ) {
             container.$replyForm.remove();
             delete container.$replyForm;
@@ -436,8 +447,6 @@ window.DustPress.Comments = ( function( window, document, $ ) {
         var uid  = app.uniqid();
         app.containers[uid] = container;
         container.attr( 'id', uid );
-        container.$formContainer.attr( 'data-container', uid );
-        container.$commentForm.attr( 'data-container', uid );
     };
 
     app.uniqid = function (pr, en) {

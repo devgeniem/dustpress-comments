@@ -3,7 +3,7 @@
     position: relative;
 }
 
-.dustpres-comments__loader {
+.dustpress-comments__loader {
     display: none;
     position: absolute;
     top: 0; right: 0;
@@ -11,7 +11,7 @@
     background: rgba(255,255,255,0.8);
 }
 
-.dustpres-comments__loader span {
+.dustpress-comments__loader span {
     position: absolute;
     text-align: center;
     width: 100%;
