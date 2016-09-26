@@ -86,3 +86,13 @@ function add_comments_templates( $templatepaths ) {
     array_push( $templatepaths, dirname( __FILE__ ) . '/partials' );
     return $templatepaths;
 }
+
+/**
+ * Plugin text-domain
+ * @return no return
+ */
+add_action( 'init', __NAMESPACE__ . '\comments_textdomain' );
+
+function comments_textdomain() {
+    load_plugin_textdomain( 'dustpress-comments', false, 'dustpress-comments/languages' );
+}
