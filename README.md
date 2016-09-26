@@ -10,7 +10,7 @@ To enable *full page caching* on pages using DustPress Comments the helper param
 
 ## Functionalities
 
-- threadified comment loading _(threaded commenting is enabled via the WordPress discussion settings)_
+- threaded comment loading _(threaded commenting is enabled via the WordPress discussion settings)_
 - comment list rendering
 - form rendering
 - ajaxified pagination _(pagination is enabled via the WordPress discussion settings and uses the DustPress Pagination helper)_
