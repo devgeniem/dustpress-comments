@@ -178,7 +178,7 @@ class Comments extends \DustPress\Helper {
         $this->threaded         = isset( $this->comments_args['threaded'] )          ? $this->comments_args['threaded']          : get_option('thread_comments');
         $this->paginate         = isset( $this->comments_args['page_comments'] )     ? $this->comments_args['page_comments']     : get_option( 'page_comments', true );
         $this->per_page         = isset( $this->comments_args['comments_per_page'] ) ? $this->comments_args['comments_per_page'] : get_option( 'comments_per_page', 20 );
-        $this->page_label       = isset( $this->comments_args['page_label'] )        ? $this->comments_args['page_label']        : __( 'comment-page', 'dusptress-comments' );
+        $this->page_label       = isset( $this->comments_args['page_label'] )        ? $this->comments_args['page_label']        : __( 'comment-page', 'dustpress-comments' );
         $this->reply            = isset( $this->comments_args['reply'] )             ? $this->comments_args['reply']             : true;
     }
 
@@ -290,9 +290,9 @@ class Comments extends \DustPress\Helper {
         $this->handle_ajax_params();
 
         if ( $comment->comment_approved ) {
-            $this->params->message = [ 'success' => __( 'Comment sent.', 'dusptress-comments' ) ];
+            $this->params->message = [ 'success' => __( 'Comment sent.', 'dustpress-comments' ) ];
         } else {
-            $this->params->message = [ 'warning' => __( 'Comment is waiting for approval.', 'dusptress-comments' ) ];
+            $this->params->message = [ 'warning' => __( 'Comment is waiting for approval.', 'dustpress-comments' ) ];
         }
 
         $output = $this->output();
@@ -337,7 +337,7 @@ class Comments extends \DustPress\Helper {
     private function get_comments() {
         $this->comments_args['comment_post_id'] = $this->comment_post_id;
 
-        $get_all = $this->get_int( __( 'all-comments', 'dusptress-comments' ) );
+        $get_all = $this->get_int( __( 'all-comments', 'dustpress-comments' ) );
 
         // Maybe paginate
         if ( 1 !== $get_all && $this->paginate ) {
@@ -547,9 +547,8 @@ class Comments extends \DustPress\Helper {
         else {
             if ( isset( $this->loader ) ) {
                 echo $this->loader;
-            }
-            else {
-                echo '<div class="dustpress-comments__loader"><span>' . __( 'Processing comments...', 'dusptress-comments' ) . '<span></div>';
+            } else {
+                echo '<div class="dustpress-comments__loader"><span>' . __( 'Processing comments...', 'dustpress-comments' ) . '<span></div>';
             }
         }
     }
@@ -651,7 +650,7 @@ class Comments extends \DustPress\Helper {
         $uri = $_SERVER['REQUEST_URI'];
         if ( preg_match( $pattern, $uri, $matches ) ) {
             $uri        = preg_replace( $pattern, '', $uri );
-            wp_redirect( $uri . '?' . __( 'all-comments', 'dusptress-comments' ) . '=1' );
+            wp_redirect( $uri . '?' . __( 'all-comments', 'dustpress-comments' ) . '=1' );
             exit();
         }
 
