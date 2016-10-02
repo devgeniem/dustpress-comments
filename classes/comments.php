@@ -335,26 +335,28 @@ class Comments extends \DustPress\Helper {
      * @return array
      */
     private function get_comments() {
-        $this->comments_args['comment_post_id'] = $this->comment_post_id;
+        $this->comments_args['post_id'] = $this->comment_post_id;
 
         $get_all = $this->get_int( __( 'all-comments', 'dustpress-comments' ) );
+
+        // Set the 'parent' argument to '0' to get top level comments first.
+        $this->comments_args['parent'] = 0;
+
+        // We set 'hierarchical' to 'true' to get a flat array of comments + their descendants.
+        $this->comments_args['hierarchical'] = true;
 
         // Maybe paginate
         if ( 1 !== $get_all && $this->paginate ) {
             $args       = array_merge( $this->comments_args, [ 'count' => true ] );
             $this->page = $this->page ? $this->page : 1;
 
-            $this->comments_args['parent'] = 0;
             $this->comments_args['offset'] = $this->page == 1 ? 0 : ( $this->page - 1 ) * $this->per_page;
             $this->comments_args['number'] = $this->per_page;
-
-            // This is a nice undocumented feature of WP
-            $this->comments_args['hierarchical'] = true;
 
             // Get the comments
             $this->comments         = get_comments( $this->comments_args );
             // Count top level comments for pagination
-            $this->items            = $this->count_top_level_comments( $this->comments_args['comment_post_id'] );
+            $this->items            = $this->count_top_level_comments( $this->comment_post_id );
             // Add the pagination HTML after comments
             $this->after_comments   = $this->pagination();
 
