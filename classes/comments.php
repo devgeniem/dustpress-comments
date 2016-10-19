@@ -231,17 +231,17 @@ class Comments extends \DustPress\Helper {
                 if ( method_exists( $comments_model, 'get_comments_args' ) ) {
                     $this->comments_args = $comments_model->get_comments_args( $this->comment_post_id );
                 } else {
-                    die( __( 'DustPress-Comments: The \'get_comments_args\' function is not defined in the model.', 'dustpress-comments' ) );
+                    die( __( 'DustPress Comments: The \'get_comments_args\' function is not defined in the model.', 'dustpress-comments' ) );
                 }
 
                 if ( method_exists( $comments_model, 'get_form_args' ) ) {
                     $this->form_args = $comments_model->get_form_args( $this->comment_post_id );
                 } else {
-                    die( __( 'DustPress-Comments: The \'get_form_args\' function is not defined in the model.', 'dustpress-comments' ) );
+                    die( __( 'DustPress Comments: The \'get_form_args\' function is not defined in the model.', 'dustpress-comments' ) );
                 }
 
             } else {
-                die( __( 'DustPress-Comments: The model class {' . $this->params->model . '} does not exist.', 'dustpress-comments' ) );
+                die( __( 'DustPress Comments: The model class {' . $this->params->model . '} does not exist.', 'dustpress-comments' ) );
             }
         }
 
@@ -257,11 +257,11 @@ class Comments extends \DustPress\Helper {
             $this->form_args        = apply_filters( 'dustpress/comments/' . $this->params->filter_slug . '/get_form_args', $this->form_args, $this->comment_post_id  );
 
             if ( ! is_array( $this->comments_args ) || empty( $this->comments_args ) ) {
-                die( __( 'DustPress-Comments: The \'get_comments_args\' filter return value is not an array or it is empty.', 'dustpress-comments' ) );
+                die( __( 'DustPress Comments: The \'get_comments_args\' filter return value is not an array or it is empty.', 'dustpress-comments' ) );
             }
 
             if ( ! is_array( $this->comments_args ) || empty( $this->comments_args ) ) {
-                die( __( 'DustPress-Comments: The \'get_form_args\' filter return value is not an array or it is empty.', 'dustpress-comments' ) );
+                die( __( 'DustPress Comments: The \'get_form_args\' filter return value is not an array or it is empty.', 'dustpress-comments' ) );
             }
         }
     }
