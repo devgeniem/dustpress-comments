@@ -13,6 +13,9 @@ namespace DustPress;
 
 use get_file_data;
 
+// Stop immediately if Dustpress is not enabled
+if ( ! class_exists('\DustPress\Helper') ) { return; }
+
 add_action( 'after_setup_theme', __NAMESPACE__ . '\init_comments_helper' );
 
 /**
