@@ -3,7 +3,7 @@
  * Plugin Name: DustPress Comments
  * Plugin URI: https://github.com/devgeniem/dustpress-comments
  * Description: Comments Helper for DustPress - A WordPress plugin that adds a DustPress helper enabling ajaxified commenting.
- * Version: 1.1.6
+ * Version: 1.1.7
  * Author: Geniem Oy / Ville Siltala
  * Author URI: http://www.geniem.com
  * Text Domain: dustpress-comments
@@ -13,15 +13,16 @@ namespace DustPress;
 
 use get_file_data;
 
-// Stop immediately if Dustpress is not enabled
-if ( ! class_exists('\DustPress\Helper') ) { return; }
-
 add_action( 'after_setup_theme', __NAMESPACE__ . '\init_comments_helper' );
 
 /**
  * Init the helper.
  */
 function init_comments_helper() {
+
+    // Stop immediately if Dustpress is not enabled
+    if ( ! class_exists( '\DustPress\Helper' ) ) { return; }
+
     // Require the class file
     require_once( dirname( __FILE__ ) . '/classes/comments.php' );
 
