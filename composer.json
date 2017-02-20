@@ -10,9 +10,6 @@
         "role": "Developer"
     }
   ],
-  "require": {
-    "composer/installers": "^1.0.0"
-  },
   "keywords": [
     "wordpress", "comments", "ajax", "dustjs", "dustpress", "theme", "plugin", "javascript"
   ],
