@@ -550,7 +550,7 @@ class Comments extends \DustPress\Helper {
             if ( isset( $this->loader ) ) {
                 echo $this->loader;
             } else {
-                echo '<div class="dustpress-comments__loader"><span>' . __( 'Processing comments...', 'dustpress-comments' ) . '<span></div>';
+                echo '<div class="dustpress-comments__loader"><span>' . __( 'Processing comments...', 'dustpress-comments' ) . '</span></div>';
             }
         }
     }
