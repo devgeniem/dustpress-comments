@@ -302,7 +302,7 @@ class Comments extends \DustPress\Helper {
             'html'      => $output,
         ];
 
-        wp_send_json( $return );
+        echo json_encode( $return );
     }
 
     /**
