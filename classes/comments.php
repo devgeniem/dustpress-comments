@@ -303,6 +303,19 @@ class Comments extends \DustPress\Helper {
         ];
 
         echo json_encode( $return );
+
+        add_filter( 'comment_post_redirect', array( $this, 'prevent_redirect' ) );
+    }
+
+    /**
+     * Prevents WordPress from making a redirect to the AJAX call when we don't want it to.
+     *
+     * @param string $original Original redirect url. Not needed.
+     * @param string $comment The comment that was sent.
+     * @return void
+     */
+    public function prevent_redirect( $original, $comment ) {
+        die();
     }
 
     /**
