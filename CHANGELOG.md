@@ -9,5 +9,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - This changelog
 
-### Modified
-- Added parameter-parameters to add_filter to prevent warning.
+### Changed
+- Revert back to wp_send_json, since after JSON is sent die is required and the filter is therefore unnecessary. 
