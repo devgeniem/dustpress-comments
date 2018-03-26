@@ -304,7 +304,7 @@ class Comments extends \DustPress\Helper {
 
         echo json_encode( $return );
 
-        add_filter( 'comment_post_redirect', array( $this, 'prevent_redirect' ) );
+        add_filter( 'comment_post_redirect', array( $this, 'prevent_redirect' ), 10, 2 );
     }
 
     /**
