@@ -718,7 +718,7 @@ class Comments extends \DustPress\Helper {
     private function get_comment_depth( $comment_id ) {
         $depth_level = 0;
 
-        while ( $comment_id > 0  ) {
+        while ( $comment_id > 0 ) {
             $comment = get_comment( $comment_id );
             $comment_id = $comment->comment_parent;
             $depth_level++;
