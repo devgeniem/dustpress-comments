@@ -144,6 +144,10 @@ class Comments extends \DustPress\Helper {
         $partial            = apply_filters( 'dustpress/comments/partial', 'comments-container' );
         $rendering_data     = apply_filters( 'dustpress/comments/data', $rendering_data );
 
+        if ( class_exists( 'DustPress\\Debugger' ) ) {
+            \DustPress\Debugger::set_debugger_data( 'DustPress Comments', $rendering_data );
+        }
+
         // Render output
         return dustpress()->render( [
             'partial'   => $partial,
@@ -446,12 +450,23 @@ class Comments extends \DustPress\Helper {
                 break;
             }
 
+            global $comment_depth;
+
+            $comment_depth = $this->get_comment_depth( $cid );
+
             $comment->comment_class = comment_class( $classes, $cid, $this->comment_post_id, false );
 
             // Load a reply link
             if ( $this->reply ) {
-                $comment->reply_link    = \get_comment_reply_link( $this->reply_args, $cid );
-                $comment->reply         = true;
+                $this->reply_args['depth'] = $comment_depth;
+                $comment->reply_link       = \get_comment_reply_link( $this->reply_args, $cid );
+
+                if ( ! empty( $comment->reply_link ) ) {
+                    $comment->reply = true;
+                }
+                else {
+                    $comment->reply = false;
+                }
             }
 
             // Set an avatar
@@ -463,11 +478,17 @@ class Comments extends \DustPress\Helper {
                 $alt            = isset( $alt ) ? $alt : null;
                 $comment->avatar = get_avatar( $id_or_email, $size, $default, $alt );
             }
+            else {
+                $comment->avatar = false;
+            }
 
             // Load a custom profile picture
             $pic = apply_filters( 'dustpress/comments/profile_picture', $comment );
             if ( is_string( $pic ) ) {
                 $comment->profile_pic = $pic;
+            }
+            else {
+                $comment->profile_pic = false;
             }
 
             // Filter comment
@@ -686,6 +707,22 @@ class Comments extends \DustPress\Helper {
             $post = get_post( $post_id, OBJECT );
             setup_postdata( $post );
         }
+    }
+
+    /**
+     * Get comment depth.
+     *
+     * @param int $my_comment_id Comment id.
+     * @return int
+     */
+    private function get_comment_depth( $my_comment_id ) {
+        $depth_level = 0;
+        while( $my_comment_id > 0  ) { // if you have ideas how we can do it without a loop, please, share it with us in comments
+            $my_comment = get_comment( $my_comment_id );
+            $my_comment_id = $my_comment->comment_parent;
+            $depth_level++;
+        }
+        return $depth_level;
     }
 
 }

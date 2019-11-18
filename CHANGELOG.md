@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- DustPress comments partial data to DustPress debugger
+
+### Changed
+- Fixed comment depth
+
 ## [1.1.13] - 2019-08-02
 
 ### Changed
