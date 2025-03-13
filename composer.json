@@ -18,6 +18,6 @@
   "require": {
     "php": ">=5.4",
     "devgeniem/dustpress": ">=0.4.0",
-    "composer/installers": "^1.0.12"
+    "composer/installers": "^2.2"
   }
 }
